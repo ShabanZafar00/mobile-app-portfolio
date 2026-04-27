@@ -15,18 +15,11 @@ const setCharacter = (
 
   const loadCharacter = () => {
     return new Promise<GLTF | null>(async (resolve, reject) => {
-      try {
-        const encryptedBlob = await decryptFile(
-          "/models/character.enc",
-          "Character3D#@"
-        );
-        const blobUrl = URL.createObjectURL(new Blob([encryptedBlob]));
-
-        let character: THREE.Object3D;
+      const loadFromUrl = (url: string, releaseAfterLoad = false) => {
         loader.load(
-          blobUrl,
+          url,
           async (gltf) => {
-            character = gltf.scene;
+            const character = gltf.scene;
             await renderer.compileAsync(character, camera, scene);
             character.traverse((child: any) => {
               if (child.isMesh) {
@@ -39,19 +32,35 @@ const setCharacter = (
             resolve(gltf);
             setCharTimeline(character, camera);
             setAllTimeline();
-            character!.getObjectByName("footR")!.position.y = 3.36;
-            character!.getObjectByName("footL")!.position.y = 3.36;
+            character.getObjectByName("footR")!.position.y = 3.36;
+            character.getObjectByName("footL")!.position.y = 3.36;
+            if (releaseAfterLoad) {
+              URL.revokeObjectURL(url);
+            }
             dracoLoader.dispose();
           },
           undefined,
           (error) => {
             console.error("Error loading GLTF model:", error);
+            if (releaseAfterLoad) {
+              URL.revokeObjectURL(url);
+            }
             reject(error);
           }
         );
+      };
+
+      try {
+        const encryptedBlob = await decryptFile(
+          "/models/character.enc",
+          "Character3D#@"
+        );
+        const blobUrl = URL.createObjectURL(new Blob([encryptedBlob]));
+        loadFromUrl(blobUrl, true);
       } catch (err) {
-        reject(err);
-        console.error(err);
+        // Fallback for production when encrypted payload/decryption fails.
+        console.error("Encrypted model load failed, using plain GLB.", err);
+        loadFromUrl("/models/character.glb");
       }
     });
   };

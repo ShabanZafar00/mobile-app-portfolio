@@ -20,12 +20,20 @@ const setLighting = (scene: THREE.Scene) => {
 
   new RGBELoader()
     .setPath("/models/")
-    .load("char_enviorment.hdr", function (texture) {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      scene.environment = texture;
-      scene.environmentIntensity = 0;
-      scene.environmentRotation.set(5.76, 85.85, 1);
-    });
+    .load(
+      "char_enviorment.hdr",
+      function (texture) {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.environment = texture;
+        scene.environmentIntensity = 0;
+        scene.environmentRotation.set(5.76, 85.85, 1);
+      },
+      undefined,
+      function (error) {
+        // Keep rendering even if HDR file is missing/corrupted.
+        console.warn("HDR environment failed to load:", error);
+      }
+    );
 
   function setPointLight(screenLight: any) {
     if (screenLight.material.opacity > 0.9) {
