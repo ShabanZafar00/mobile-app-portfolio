@@ -6,6 +6,7 @@ interface Props {
   alt?: string;
   video?: string;
   link?: string;
+  removeBackground?: boolean;
 }
 
 const WorkImage = (props: Props) => {

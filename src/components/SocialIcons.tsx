@@ -3,9 +3,7 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa6";
 import "./styles/SocialIcons.css";
-import { TbNotes } from "react-icons/tb";
 import { useEffect } from "react";
-import HoverLinks from "./HoverLinks";
 import { FaEnvelope } from "react-icons/fa6";
 
 const SocialIcons = () => {
