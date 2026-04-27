@@ -52,8 +52,16 @@ const Scene = () => {
       const light = setLighting(scene);
       let progress = setProgress((value) => setLoading(value));
       const { loadCharacter } = setCharacter(renderer, scene, camera);
+      const ensureLoadingCompletes = () => {
+        // Prevent a permanent loading overlay if model/decryption fails in production.
+        progress.clear();
+      };
+      const loadingFailSafe = window.setTimeout(() => {
+        ensureLoadingCompletes();
+      }, 15000);
 
       loadCharacter().then((gltf) => {
+        window.clearTimeout(loadingFailSafe);
         if (gltf) {
           const animations = setAnimations(gltf);
           hoverDivRef.current && animations.hover(gltf, hoverDivRef.current);
@@ -73,6 +81,10 @@ const Scene = () => {
             handleResize(renderer, camera, canvasDiv, character)
           );
         }
+      }).catch((error) => {
+        window.clearTimeout(loadingFailSafe);
+        console.error("Character load failed:", error);
+        ensureLoadingCompletes();
       });
 
       let mouse = { x: 0, y: 0 },
@@ -127,6 +139,7 @@ const Scene = () => {
       };
       animate();
       return () => {
+        window.clearTimeout(loadingFailSafe);
         clearTimeout(debounce);
         scene.clear();
         renderer.dispose();
